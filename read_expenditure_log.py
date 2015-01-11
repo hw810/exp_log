@@ -98,6 +98,15 @@ if __name__ == '__main__':
         total_values.append(total_expenditure[k])
     f_log.close()
 
+    cum_values = [np.sum(total_values[:i+1]) for i in xrange(len(total_values))]
+    daily_budget = 100.0 / 7
+    x = np.array(range(1, len(total_keys)+1))
+    cum_budget = x * daily_budget
+    print 'Total spending: {0:.1f}'.format(cum_values[-1])
+    print 'Total budget:   {0:.1f}'.format(cum_budget[-1])
+
+    # plot
+
     fig = plt.figure()
     fig.suptitle('Save to thrive', fontsize=20)
     ax = fig.add_subplot(111)
@@ -118,13 +127,9 @@ if __name__ == '__main__':
     plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
 
     ax2 = ax.twinx()
-    cum_values = [np.sum(total_values[:i+1]) for i in xrange(len(total_values))]
     ax2.plot(total_keys, cum_values, 'r-', linewidth=2)
     for tl in ax2.get_yticklabels():
         tl.set_color('red')
-    daily_budget = 100.0 / 7
-    x = np.array(range(1, len(total_keys)+1))
-    cum_budget = x * daily_budget
     ax2.plot(total_keys, cum_budget, 'r--', linewidth=2)
     ax2.xaxis.set_major_locator(WeekdayLocator(SATURDAY))  # major ticks on Saturdays
     ax2.xaxis.set_minor_locator(DayLocator())  # minor ticks on every days
