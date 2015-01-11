@@ -1,9 +1,13 @@
-
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from collections import defaultdict
 import re
 from datetime import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+from matplotlib.dates import WeekdayLocator, SATURDAY, DayLocator, DateFormatter
+
 
 class DayLog():
 
@@ -25,6 +29,7 @@ def is_number(s):
         return True
     except ValueError:
         return False
+
 
 def day_log_iterator(f):
 
@@ -79,7 +84,7 @@ def parse_square_bracket(one_string):
 
 
 if __name__ == '__main__':
-    fname = '../../Org/SavingLog.org'
+    fname = os.path.join(os.path.expanduser('~'), 'Dropbox/Org/SavingLog.org')
     f_log = open(fname)
     total_expenditure = defaultdict(int)
     for d in day_log_iterator(f_log):
@@ -89,14 +94,45 @@ if __name__ == '__main__':
     total_keys.sort()
     total_values = []
     for k in total_keys:
-        print k.strftime('%Y-%m-%d'), total_expenditure[k]
+        #     print k.strftime('%Y-%m-%d'), total_expenditure[k]
         total_values.append(total_expenditure[k])
     f_log.close()
 
     fig = plt.figure()
+    fig.suptitle('Save to thrive', fontsize=20)
     ax = fig.add_subplot(111)
-    ax.plot(total_keys, total_values, 'g-')
+    # ax.plot(total_keys, total_values, 'g-')
+    ax.bar(total_keys, total_values, edgecolor='none', align='center', color='green')
     avg = [np.mean(total_values[:i+1]) for i in xrange(len(total_values))]
-    ax.plot(total_keys, avg, 'r-o')
+    ax.plot(total_keys, avg, 'g-o', markeredgecolor='none', markerfacecolor='white', linewidth=2)
+    for tl in ax.get_yticklabels():
+        tl.set_color('green')
+    # fig.autofmt_xdate()
+    ax.xaxis.set_major_locator(WeekdayLocator(SATURDAY))  # major ticks on Saturdays
+    ax.xaxis.set_minor_locator(DayLocator())  # minor ticks on every days
+    week_formatter = DateFormatter('%y %b %d')
+    ax.xaxis.set_major_formatter(week_formatter)
     ax.grid(True)
+    ax.xaxis_date()
+    ax.autoscale_view()
+    plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
+
+    ax2 = ax.twinx()
+    cum_values = [np.sum(total_values[:i+1]) for i in xrange(len(total_values))]
+    ax2.plot(total_keys, cum_values, 'r-', linewidth=2)
+    for tl in ax2.get_yticklabels():
+        tl.set_color('red')
+    daily_budget = 100.0 / 7
+    x = np.array(range(1, len(total_keys)+1))
+    cum_budget = x * daily_budget
+    ax2.plot(total_keys, cum_budget, 'r--', linewidth=2)
+    ax2.xaxis.set_major_locator(WeekdayLocator(SATURDAY))  # major ticks on Saturdays
+    ax2.xaxis.set_minor_locator(DayLocator())  # minor ticks on every days
+    week_formatter = DateFormatter('%y %b %d')
+    ax2.xaxis.set_major_formatter(week_formatter)
+    ax2.grid(True)
+    ax2.xaxis_date()
+    ax2.autoscale_view()
+    plt.setp(ax2.get_xticklabels(), rotation=45, horizontalalignment='right')
     plt.show()
+
